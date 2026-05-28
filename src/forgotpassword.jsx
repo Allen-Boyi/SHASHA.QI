@@ -18,7 +18,7 @@ const ForgotPassword = ({ isOpen, onClose }) => {
     setMessage('');
 
     try {
-      const res = await fetch(WEBSITE_URL + '/forgot-password', {
+      const res = await fetch(`${WEBSITE_URL}/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userinput: email }),
