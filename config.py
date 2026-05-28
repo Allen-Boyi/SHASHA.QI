@@ -19,3 +19,4 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS=False
     GOOGLE_INFO=json.loads(os.getenv("GOOGLE_CREDINTIALS"))
     JWT_SECRET_KEY=os.getenv("JWT_SECRET_KEY")
+    BREVO_API_KEY=os.getenv("BREVO_API_KEY")
