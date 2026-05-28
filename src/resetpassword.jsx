@@ -6,9 +6,9 @@ import './resetpassword.css';
 function getStrength(pw) {
   if (!pw) return { score: 0, label: '', cls: '' };
   let score = 0;
-  if (pw.length >= 8)              score++;
-  if (/[A-Z]/.test(pw))           score++;
-  if (/[0-9]/.test(pw))           score++;
+  if (pw.length >= 8)               score++;
+  if (/[A-Z]/.test(pw))            score++;
+  if (/[0-9]/.test(pw))            score++;
   if (/[^A-Za-z0-9]/.test(pw))    score++;
   const map = ['', 'weak', 'fair', 'good', 'strong'];
   const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
@@ -16,8 +16,7 @@ function getStrength(pw) {
 }
 
 const ResetPasswordModal = ({ onSuccess, onClose }) => {
-  const token = window.location.pathname.split('/').pop();
-
+  // Setup standard state managers
   const [password,        setPassword]        = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading,       setIsLoading]       = useState(false);
@@ -26,42 +25,58 @@ const ResetPasswordModal = ({ onSuccess, onClose }) => {
   const [tokenValid,      setTokenValid]      = useState(false);
   const [checkingToken,   setCheckingToken]   = useState(true);
 
-  const baseURL =import.meta.env.VITE_BASEURL;
-  const strength    = getStrength(password);
+  // Read active hash string token on render initialization pass
+  const [token, setToken] = useState(() => {
+    return window.location.hash.split('/').pop() || '';
+  });
+
+  const baseURL = import.meta.env.VITE_BASEURL;
+  const strength = getStrength(password);
 
   // ── 1. Validate token on mount ──────────────────────────────────
   useEffect(() => {
     const validateToken = async () => {
-      console.log("Validating token from URL:", token);
-      if (!token) {
+      // Pull and evaluate fresh token reference safely directly from the hash anchor
+      const currentToken = window.location.hash.split('/').pop();
+      console.log("Validating token from URL Hash:", currentToken);
+      
+      if (!currentToken || currentToken === '#' || currentToken === 'reset-password') {
         setMessage("Invalid or missing reset token");
         setMessageType("error");
         setCheckingToken(false);
         return;
       }
+
+      // Sync local state copy safely
+      setToken(currentToken);
+
       try {
-        const res  = await fetch(`${baseURL}/reset-password/${token}`, {
+        console.log(`Sending token verification fetch to: ${baseURL}/reset-password/${currentToken}`);
+        const res = await fetch(`${baseURL}/reset-password/${currentToken}`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
+        
         const data = await res.json();
+        
         if (res.ok) {
           setTokenValid(true);
         } else {
           setMessage(data.message || "Your token is invalid or has expired");
           setMessageType("error");
-          console.log(data.message, data.username);
+          console.log("Token validation failure rejection payload:", data);
         }
       } catch (error) {
-        console.error("Connection error:", error);
+        console.error("Connection error to Flask server:", error);
         setMessage("Error connecting to the server.");
         setMessageType("error");
       } finally {
         setCheckingToken(false);
       }
     };
+
     validateToken();
-  }, [token]);
+  }, [baseURL]);
 
   // ── 2. Submit new password ──────────────────────────────────────
   const handleSubmit = async (e) => {
@@ -78,7 +93,8 @@ const ResetPasswordModal = ({ onSuccess, onClose }) => {
     setMessage('');
 
     try {
-      const res  = await fetch(`${baseURL}/reset-password/${token}`, {
+      console.log(`Submitting password updates to target: ${baseURL}/reset-password/${token}`);
+      const res = await fetch(`${baseURL}/reset-password/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ new_password: password, confirm_password: confirmPassword }),
@@ -92,10 +108,13 @@ const ResetPasswordModal = ({ onSuccess, onClose }) => {
       } else {
         setMessage("Password changed successfully!");
         setMessageType("success");
-        setTimeout(() => { setIsLoading(false); if (onSuccess) onSuccess(); }, 3000);
+        setTimeout(() => { 
+          setIsLoading(false); 
+          if (onSuccess) onSuccess(); 
+        }, 3000);
       }
     } catch (error) {
-      console.error("Submission error:", error);
+      console.error("Submission error details:", error);
       setMessage("Error connecting to the server.");
       setMessageType("error");
       setIsLoading(false);
@@ -124,7 +143,6 @@ const ResetPasswordModal = ({ onSuccess, onClose }) => {
         <div className="rp-container">
           <div className="rp-state-body">
             <div className="rp-invalid-icon">
-              {/* Warning icon */}
               <svg width="34" height="34" viewBox="0 0 24 24" fill="none"
                 stroke="#c0392b" strokeWidth="1.8"
                 strokeLinecap="round" strokeLinejoin="round">
@@ -157,7 +175,6 @@ const ResetPasswordModal = ({ onSuccess, onClose }) => {
         {/* Icon */}
         <div className="rp-icon">
           <div className="rp-icon-circle">
-            {/* Shield-check icon */}
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 3L4 6.5V12c0 4.418 3.582 8 8 9 4.418-1 8-4.582 8-9V6.5L12 3z"
                 fill="#0C67A0" opacity="0.12"
@@ -190,7 +207,6 @@ const ResetPasswordModal = ({ onSuccess, onClose }) => {
                 placeholder="Enter new password"
                 required
               />
-              {/* Strength bar */}
               {password && (
                 <>
                   <div className="rp-strength-bar">
