@@ -23,15 +23,28 @@ def generate_confirm_token(length:int=32):
     confirm_token=''.join(secrets.choice(alphabet)for _ in range(length))
     return confirm_token
 
-def send_confirm_email(username,email,confirm_token):
+def send_confirm_email(username, email, confirm_token):
     try:
-        message_text=f"Hello, I am {username} and i would like to confirm my account. My token is: {confirm_token}"
-        encoded_message=quote(message_text)
+        # 1. Setup the WhatsApp deep-link generation logic
+        message_text = f"Hello, I am {username} and i would like to confirm my account. My token is: {confirm_token}"
+        encoded_message = quote(message_text)
         WHATSAPP_LINK = f"https://wa.me/{Config.ORG_PHONE_NUMBER}?text={encoded_message}"
-        message=MIMEMultipart("alternative")
-        message['subject']='Account Confirmation via WhatsApp'
-        message['From']=Config.EMAIL_USER
-        message['To']=email
+        
+        # 2. Grab the Brevo API key securely from environment variables
+        api_key = os.environ.get("BREVO_API_KEY")
+        if not api_key:
+            print("Error: BREVO_API_KEY environment variable is missing!")
+            return False
+
+        url = "https://api.brevo.com/v3/smtp/email"
+        
+        headers = {
+            "accept": "application/json",
+            "api-key": api_key,
+            "content-type": "application/json"
+        }
+
+        # 3. Define the HTML visual layout
         body_html = f"""
         <html>
           <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -45,7 +58,7 @@ def send_confirm_email(username,email,confirm_token):
                    style="background-color: #25D366; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; font-size: 18px;">
                    Verify via WhatsApp
                 </a>
-                <p style="text-align: center; font-size: 12px; color: #666;">
+                <p style="text-align: center; font-size: 12px; color: #666; margin-top: 10px;">
                 (Note: After clicking, you must press "Send" in WhatsApp to finish)
                 </p>
               </div>
@@ -58,31 +71,37 @@ def send_confirm_email(username,email,confirm_token):
         </html>
         """
 
-        # Plain Text Body: For email clients that don't support HTML
-        text_body = f"""
-        Hello {username},
+        # 4. Build the JSON request payload for Brevo V3 API
+        payload = {
+            "sender": {
+                "name": "shasha.ai",
+                "email": Config.EMAIL_USER  # Must be your verified Gmail sender
+            },
+            "to": [
+                {
+                    "email": email,
+                    "name": username
+                }
+            ],
+            "subject": "Account Confirmation via WhatsApp",
+            "htmlContent": body_html
+        }
 
-        To verify your account, please follow these two quick steps:
-
-        1. Click this link: {WHATSAPP_LINK}
-        2. Once WhatsApp opens, press the "SEND" button to submit your token.
-
-        Your token is: {confirm_token}
-
-        Thank you!
-        """
-        message.attach(MIMEText(text_body,"plain"))
-        message.attach(MIMEText(body_html,'html'))
-        with SMTP(Config.EMAIL_HOST,Config.EMAIL_PORT)as server:
-            server.starttls()
-            server.login(Config.EMAIL_USER ,Config.EMAIL_PASSWORD)
-            server.send_message(message)
-            print("Confirmation email has been send successfully!")
+        # 5. Fire the secure HTTPS request to Brevo
+        print(f"Sending confirmation email payload via Brevo HTTP API for {username}...")
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        
+        # Check if Brevo accepted the transaction safely (HTTP 201 Created)
+        if response.status_code == 201:
+            print("Confirmation email has been sent successfully via HTTP API!")
             return True
-    except Exception as err:
-        print("Error occured while sending the email",err)
-        return False
+        else:
+            print(f"Brevo API rejected request with status {response.status_code}: {response.text}")
+            return False
 
+    except Exception as err:
+        print("Error occurred while sending the confirmation email:", err)
+        return False
 @dashboardusers_bp.route("/",methods=["GET"])
 def get_users():
     users=User.query.all()
