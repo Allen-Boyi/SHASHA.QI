@@ -26,7 +26,7 @@ const ResetPasswordModal = ({ onSuccess, onClose }) => {
   const [tokenValid,      setTokenValid]      = useState(false);
   const [checkingToken,   setCheckingToken]   = useState(true);
 
-  const WEBSITE_URL = "http://192.168.100.100:5000";
+  const WEBSITE_URL =import.meta.env.VITE_BASEURL;
   const strength    = getStrength(password);
 
   // ── 1. Validate token on mount ──────────────────────────────────
