@@ -182,7 +182,7 @@ def generate_reset_token(length: int=32):
 # # sending reset link 
 def sending_reset_email(email, username, reset_token):
     print("Generating reset link...website url: ", Config.WEBSITE_URL)
-    reset_link = f'{Config.WEBSITE_URL}/reset-password/{reset_token}'
+    reset_link = f'{Config.WEBSITE_URL}/#/reset-password/{reset_token}'
     print("Reset link: ", reset_link)
     
     # Grab the API key from environment variables
