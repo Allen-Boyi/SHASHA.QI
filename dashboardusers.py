@@ -7,6 +7,7 @@ import string
 import secrets
 from datetime import datetime,timedelta
 import smtplib
+from smtplib import SMTP_SSL  # Add this import at the top
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from sqlalchemy import func
@@ -179,7 +180,6 @@ def generate_reset_token(length: int=32):
 
 # # sending reset link 
 def sending_reset_email(email, username, reset_token):
-    # Update your production URL fallback checking dynamically if needed
     print("Generating reset link...website url: ", Config.WEBSITE_URL)
     reset_link = f'{Config.WEBSITE_URL}/reset-password/{reset_token}'
     print("Reset link: ", reset_link)
@@ -190,7 +190,7 @@ def sending_reset_email(email, username, reset_token):
         message["From"] = Config.EMAIL_USER
         message["To"] = email
         
-        # Fixed the opening <div> tag below
+        # HTML body template
         html_body = f"""
         <html>
             <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;">
@@ -198,18 +198,15 @@ def sending_reset_email(email, username, reset_token):
                     <h2 style="color:#6366f1;">Password Reset Request</h2>
                     <p>Hi <strong>{username}</strong>,</p>
                     <p>We have received a request to reset your password. Click the button below to proceed:</p>
-                    
                     <div style="text-align:center;margin:30px 0;">
                         <a href="{reset_link}" style="background:linear-gradient(135deg,#6366f1,#818cf8);color:white; padding: 12px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
                             Reset Password
                         </a>
                     </div>
-                    
                     <p>Or copy and paste this link in your browser:</p>
                     <p style="word-break:break-all;background:#fff;padding:10px;border-radius:4px;">
                         <a href="{reset_link}" style="color:#6366f1;text-decoration:none;">{reset_link}</a>
                     </p>
-                    
                     <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
                     <p style="color: #999; font-size: 12px; text-align: center;">
                         © 2026 shasha.ai - All rights reserved
@@ -219,41 +216,24 @@ def sending_reset_email(email, username, reset_token):
         </html>
         """
         
-        text_body = f"""
-        Password Reset Request
+        text_body = f"\nHi {username},\n\nClick the link below to reset your password:\n\n{reset_link}\n"
         
-        Hi {username},
-        
-        We received a request to reset your password. Click the link below to proceed:
-        
-        {reset_link}
-        
-        This link will expire in 1 hour. If you didn't request this, please ignore this email.
-        
-        © 2026 shasha.ai - All rights reserved
-        """
-        
-        # Attach parts (Plain-text fallback must always be attached first)
         message.attach(MIMEText(text_body, "plain"))
         message.attach(MIMEText(html_body, "html"))
         
-        # Explicitly added a 15-second timeout safeguard to stop Gunicorn crashes
-        print("Connecting to SMTP server...")
-        with smtplib.SMTP(Config.EMAIL_HOST, Config.EMAIL_PORT, timeout=15) as server:
-            server.ehlo() # Identify yourself to the server
-            server.starttls() # Secure the connection
-            server.ehlo() # Re-identify over secure TLS connection
-            
+        print("Connecting to secure Gmail SMTP server via Port 465...")
+        
+        # Swapped to SMTP_SSL with a 15-second timeout wrapper
+        with SMTP_SSL(Config.EMAIL_HOST, int(Config.EMAIL_PORT), timeout=15) as server:
             server.login(Config.EMAIL_USER, Config.EMAIL_PASSWORD)
             server.send_message(message)
             
-            print("Email has been sent successfully")
+            print("Email has been sent successfully via Port 465!")
             return True
             
     except Exception as e:
         print("Error occurred while trying to send email:", e)
         return False
-    
 
 #--------forgot password function-----------------
 @dashboardusers_bp.route("/forgot-password",methods=["GET","POST"])
