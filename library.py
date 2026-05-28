@@ -485,12 +485,12 @@ def increment_resource_download_counts(resource):
         print("Error Occurred:",e)
         return False   
 
-@library_bp.route("/",methods=["GET"])
-def get_resources():
-    resources=Resource.query.all()
-    return jsonify([{"id": resource.resource_id,"name": resource.title,"description": resource.description,
-                     "url": resource.cloudinary_url,"resource_type": resource.resource_type_id,
-                     "subject_category": resource.sub_id} for resource in resources])
+# @library_bp.route("/",methods=["GET"])
+# def get_resources():
+#     resources=Resource.query.all()
+#     return jsonify([{"id": resource.resource_id,"name": resource.title,"description": resource.description,
+#                      "url": resource.cloudinary_url,"resource_type": resource.resource_type_id,
+#                      "subject_category": resource.sub_id} for resource in resources])
 
 # --------------Uploading a Resource -----------------
 # @library_bp.route("/api/UploadResource",methods=["POST"])
@@ -557,21 +557,21 @@ def get_resources():
 #         return jsonify({"message":f"Error occurred: {e}"})
 
 # '''''''''''''''''''''''''view resources lists'''''''''''''''''''''''
-@library_bp.route("/api/view_resources/<int:level_id>/<int:resource_type_id>/<int:sub_id>",methods=["GET"])
-def view_resources(level_id,resource_type_id,sub_id):
-    try:
-        resources=get_resources_by_level_and_subject(level_id,resource_type_id,sub_id)
-        if resources is None:
-            return jsonify({"message":"No resources found for the given criteria"}),404
-        return jsonify({"message":"Resources list found","resources":[{"resource_id":r.resource_id,"title":r.title,
-                        "description":r.description,"downloads":r.download_count,"views":r.view_count,
-                        "sub_id":r.sub_id,"level_id":r.level_id,"resource_type_id":r.resource_type_id,
-                        "author":r.author,"session":r.session if r.session else None,"file_size":r.file_size,
-                        "file_type":r.file_type,"paper_number":r.paper_number if r.paper_number else None,
-                        "years":r.years}for r in resources]}),200
-    except Exception as e:
-        print("Error occurred",e)
-        return jsonify({"message":f"Error occurred {e}"}),500   
+# @library_bp.route("/api/view_resources/<int:level_id>/<int:resource_type_id>/<int:sub_id>",methods=["GET"])
+# def view_resources(level_id,resource_type_id,sub_id):
+#     try:
+#         resources=get_resources_by_level_and_subject(level_id,resource_type_id,sub_id)
+#         if resources is None:
+#             return jsonify({"message":"No resources found for the given criteria"}),404
+#         return jsonify({"message":"Resources list found","resources":[{"resource_id":r.resource_id,"title":r.title,
+#                         "description":r.description,"downloads":r.download_count,"views":r.view_count,
+#                         "sub_id":r.sub_id,"level_id":r.level_id,"resource_type_id":r.resource_type_id,
+#                         "author":r.author,"session":r.session if r.session else None,"file_size":r.file_size,
+#                         "file_type":r.file_type,"paper_number":r.paper_number if r.paper_number else None,
+#                         "years":r.years}for r in resources]}),200
+#     except Exception as e:
+#         print("Error occurred",e)
+#         return jsonify({"message":f"Error occurred {e}"}),500   
     
 # ------------------------populate initial form with meta data----------------------------------------
 @library_bp.route("/api/form_init",methods=["GET"])
@@ -593,35 +593,35 @@ def form_init():
         return jsonify({"message":f"Error occurred: {err}"}),500
 
 # ------------------------populating the update resources form----------------------
-@library_bp.route("/api/update_form-init/<int:resource_id>",methods=["GET"])
-def update_form_init(resource_id):
-    try:
-        resource=get_resource_by_resource_id(resource_id)
-        if not resource:
-            return jsonify({"message":"Resource not found"}),404
-        levels=db.session.query(Level.level_id,Level.level_name).order_by(Level.level_id).all()
-        session=Resource.session.type.enums
-        resource_types=db.session.query(Resource_type.resource_type_id,
-                            Resource_type.resource_name).order_by(Resource_type.resource_type_id).all()
-        paper_options=Resource.session.type.enums
-        return jsonify({"message":"success","levels":[{"level_id":l.level_id,
-                "level_name":l.level_name} for l in levels],
-                "session_options":session,
-                "resources_types":[{"resource_type_id":r.resource_type_id ,
-                                            "resource_name":r.resource_name} for r in resource_types],
-                "paper_options":paper_options,
-                "resource_id":resource.resource_id,"title":resource.title,
-                "description":resource.description,"downloads":resource.download_count,
-                "views":resource.view_count,"resource_type_id":resource.resource_type_id,
-                "sub_id":resource.sub_id,"level_id":resource.level_id,
-                "author":resource.author,"session":resource.session if resource.session else None,
-                "file_type":resource.file_type,"file_size":resource.file_size,
-                "paper_number":resource.paper_number.value if resource.paper_number else None,
-                "years":resource.years
-                        }),200
-    except Exception as e:
-        print("Server error occurred: ",e)
-        return jsonify  ({"message":f"Server error occurred: {e}"})
+# @library_bp.route("/api/update_form-init/<int:resource_id>",methods=["GET"])
+# def update_form_init(resource_id):
+#     try:
+#         resource=get_resource_by_resource_id(resource_id)
+#         if not resource:
+#             return jsonify({"message":"Resource not found"}),404
+#         levels=db.session.query(Level.level_id,Level.level_name).order_by(Level.level_id).all()
+#         session=Resource.session.type.enums
+#         resource_types=db.session.query(Resource_type.resource_type_id,
+#                             Resource_type.resource_name).order_by(Resource_type.resource_type_id).all()
+#         paper_options=Resource.session.type.enums
+#         return jsonify({"message":"success","levels":[{"level_id":l.level_id,
+#                 "level_name":l.level_name} for l in levels],
+#                 "session_options":session,
+#                 "resources_types":[{"resource_type_id":r.resource_type_id ,
+#                                             "resource_name":r.resource_name} for r in resource_types],
+#                 "paper_options":paper_options,
+#                 "resource_id":resource.resource_id,"title":resource.title,
+#                 "description":resource.description,"downloads":resource.download_count,
+#                 "views":resource.view_count,"resource_type_id":resource.resource_type_id,
+#                 "sub_id":resource.sub_id,"level_id":resource.level_id,
+#                 "author":resource.author,"session":resource.session if resource.session else None,
+#                 "file_type":resource.file_type,"file_size":resource.file_size,
+#                 "paper_number":resource.paper_number.value if resource.paper_number else None,
+#                 "years":resource.years
+#                         }),200
+#     except Exception as e:
+#         print("Server error occurred: ",e)
+#         return jsonify  ({"message":f"Server error occurred: {e}"})
     
 # ---------------get meta data for subject by level id ----------------
 @library_bp.route("/api/subjects",methods=["GET"])
@@ -642,21 +642,21 @@ def get_subjects_by_level():
         return jsonify({"message":f"Error occurred: {e}"}),500
 
 # ---------------------open a resource ----------------------
-@library_bp.route("/api/open_resource/<int:resource_id>",methods=["GET"])
-def open_resource(resource_id):
-    try:
-        resource=get_resource_by_resource_id(resource_id)
-        if resource :
-            data=resource.to_dict()
-            data['cloudinary_url']=resource.cloudinary_url
-            if increment_resource_view_counts(resource):
-                print("Increment successfully")
-            else:
-                print("Increment failed")
-            return jsonify({"message":"The resource has been found","resource":data}),200
-        return jsonify({"message":"Resource has not been found"}),404
-    except Exception as e:
-        return jsonify ({"message":f"Error occurred: {e}"}),500
+# @library_bp.route("/api/open_resource/<int:resource_id>",methods=["GET"])
+# def open_resource(resource_id):
+#     try:
+#         resource=get_resource_by_resource_id(resource_id)
+#         if resource :
+#             data=resource.to_dict()
+#             data['cloudinary_url']=resource.cloudinary_url
+#             if increment_resource_view_counts(resource):
+#                 print("Increment successfully")
+#             else:
+#                 print("Increment failed")
+#             return jsonify({"message":"The resource has been found","resource":data}),200
+#         return jsonify({"message":"Resource has not been found"}),404
+#     except Exception as e:
+#         return jsonify ({"message":f"Error occurred: {e}"}),500
     
 # --------------------download resource-------------------------
 # @library_bp.route("/api/delete_resource/<int:resource_id>",methods=["DELETE"])
