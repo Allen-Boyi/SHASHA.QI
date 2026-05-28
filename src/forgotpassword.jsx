@@ -8,7 +8,7 @@ const ForgotPassword = ({ isOpen, onClose }) => {
   const [message,     setMessage]     = useState('');
   const [messageType, setMessageType] = useState('');
 
-  const WEBSITE_URL = "http://192.168.100.100:5000";
+  const WEBSITE_URL =import.meta.env.VITE_BASEURL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
