@@ -678,79 +678,79 @@ def open_resource(resource_id):
 #         return jsonify({"message":f"Server error Occurred: {e}"}),500
 
 # ------------download resource by resource_id ------------------
-@library_bp.route("/api/download_resource/<int:resource_id>",methods=["GET"])
-def download_resource(resource_id):
-    try:
-        resource=get_resource_by_resource_id(resource_id)
-        if resource is None:
-            return jsonify({"message":"Resource not found"}),404
-        if increment_resource_download_counts(resource):
-            print("Download successfully")
-        else:
-            print("Failed to increment Downloads")
-        url=resource.cloudinary_url
-        if "cloudinary.com" in url and "fl_attachment" not in url:
-            url=url.replace("/upload","/upload/fl_attachment")
-        return jsonify({"success":True,"download_url":url,"filename":f"{resource.title}.{resource.file_type}"}),200
-    except Exception as e:
-        return jsonify({"message":f"Download error occurred {e}"}),500
+# @library_bp.route("/api/download_resource/<int:resource_id>",methods=["GET"])
+# def download_resource(resource_id):
+#     try:
+#         resource=get_resource_by_resource_id(resource_id)
+#         if resource is None:
+#             return jsonify({"message":"Resource not found"}),404
+#         if increment_resource_download_counts(resource):
+#             print("Download successfully")
+#         else:
+#             print("Failed to increment Downloads")
+#         url=resource.cloudinary_url
+#         if "cloudinary.com" in url and "fl_attachment" not in url:
+#             url=url.replace("/upload","/upload/fl_attachment")
+#         return jsonify({"success":True,"download_url":url,"filename":f"{resource.title}.{resource.file_type}"}),200
+#     except Exception as e:
+#         return jsonify({"message":f"Download error occurred {e}"}),500
     
-# ----------------------------share route----------------------------
-@library_bp.route("/api/share_resource/<int:level_id>/<int:resource_type_id>/<int:sub_id>",methods=["GET"])
-def share_resource(level_id,resource_type_id,sub_id):
-    try:
-        level=db.session.query(Level).filter(level_id==level_id).all()
-        resource_type=Resource_type.query.get(resource_type_id)
-        subject=Subject.query.get(sub_id)
-        if not all([level,resource_type,subject]):
-            return jsonify({"message":"One or more categories not found"}),404
-        if subject.subject_name in SUBJECT_IMOJIS:
-            subject_emoji=SUBJECT_IMOJIS.get(subject.subject_name,'📚')
-        link=f"{Config.WEBSITE_URL}/api/view_resources/<int:level_id>/<int:resource_type_id>/<int:sub_id>"
-        raw_message=f"""{subject_emoji}*Check out these {subject.subject_name.title()} {resource_type.resource_name} on our site!*{subject_emoji}\n\n "
-                    f"Subject: {subject.title()}\n"
-                    f"Level: {level.title()} Level\n\n"
-                    f"👇 Click the link below to view:\n"
-                    f"{link}"
-                    """        
-        encoded_message=quote(raw_message)
-        whatsapp_url=f"http://wa.me/?text={encoded_message}"
-        return jsonify({"message":"Success","whatsapp_url":whatsapp_url}),200
-    except Exception as err:
-        print("Error occurred: ",err)
-        return jsonify({"message":f"Server Error occurred:{err}"}),500
+# # ----------------------------share route----------------------------
+# @library_bp.route("/api/share_resource/<int:level_id>/<int:resource_type_id>/<int:sub_id>",methods=["GET"])
+# def share_resource(level_id,resource_type_id,sub_id):
+#     try:
+#         level=db.session.query(Level).filter(level_id==level_id).all()
+#         resource_type=Resource_type.query.get(resource_type_id)
+#         subject=Subject.query.get(sub_id)
+#         if not all([level,resource_type,subject]):
+#             return jsonify({"message":"One or more categories not found"}),404
+#         if subject.subject_name in SUBJECT_IMOJIS:
+#             subject_emoji=SUBJECT_IMOJIS.get(subject.subject_name,'📚')
+#         link=f"{Config.WEBSITE_URL}/api/view_resources/<int:level_id>/<int:resource_type_id>/<int:sub_id>"
+#         raw_message=f"""{subject_emoji}*Check out these {subject.subject_name.title()} {resource_type.resource_name} on our site!*{subject_emoji}\n\n "
+#                     f"Subject: {subject.title()}\n"
+#                     f"Level: {level.title()} Level\n\n"
+#                     f"👇 Click the link below to view:\n"
+#                     f"{link}"
+#                     """        
+#         encoded_message=quote(raw_message)
+#         whatsapp_url=f"http://wa.me/?text={encoded_message}"
+#         return jsonify({"message":"Success","whatsapp_url":whatsapp_url}),200
+#     except Exception as err:
+#         print("Error occurred: ",err)
+#         return jsonify({"message":f"Server Error occurred:{err}"}),500
     
-@library_bp.route("/api/edit_resource/<int:resource_id>",methods=["PUT"])
-def edit_resource(resource_id):
-    try:
-        resource=Resource.query.get(resource_id)
-        if not resource :
-            print("resource not found: ")
-            return jsonify({"message":"Resource not found"}),404
-        data=request.json
-        resource.title=(data.get("title")or " ").strip() or resource.title
-        resource.description=(data.get("description")or  " ").strip() or resource.description
-        resource.author=(data.get("author") or " ").strip() or resource.author
-        resource.paper_number=(data.get("paper_number")or " ").strip() or (resource.paper_number)
-        new_sub_id=data.get("sub_id")
-        if new_sub_id is not None and str(new_sub_id).isdigit():
-            resource.sub_id=int(new_sub_id) or resource.sub_id
-        new_resource_type_id=data.get("resource_type_id")
-        if new_resource_type_id is not None and str(new_resource_type_id).isdigit():
-            resource.resource_type_id=int(new_resource_type_id) or resource.new_resource_type_id
-        new_level_id=data.get("level_id")
-        if new_level_id is not None and str(new_level_id).isdigit():
-            resource.level_id=int(new_level_id) or resource.level_id
-        new_years=data.get("years")
-        if new_years is not None and str(new_years).isdigit():
-            resource.years=int(new_years) or resource.years
-        db.session.commit()
-        print("Resource has been Updated ")
-        return jsonify({"message":"Resource has been updated successfully"}),200
-    except Exception as err:
-        db.session.rollback()
-        print("Error occurred: ",err)
-        return jsonify ({"message":f"Server error occurred: {err}"}),500
+# @library_bp.route("/api/edit_resource/<int:resource_id>",methods=["PUT"])
+# def edit_resource(resource_id):
+#     try:
+#         resource=Resource.query.get(resource_id)
+#         if not resource :
+#             print("resource not found: ")
+#             return jsonify({"message":"Resource not found"}),404
+#         data=request.json
+#         resource.title=(data.get("title")or " ").strip() or resource.title
+#         resource.description=(data.get("description")or  " ").strip() or resource.description
+#         resource.author=(data.get("author") or " ").strip() or resource.author
+#         resource.paper_number=(data.get("paper_number")or " ").strip() or (resource.paper_number)
+#         new_sub_id=data.get("sub_id")
+#         if new_sub_id is not None and str(new_sub_id).isdigit():
+#             resource.sub_id=int(new_sub_id) or resource.sub_id
+#         new_resource_type_id=data.get("resource_type_id")
+#         if new_resource_type_id is not None and str(new_resource_type_id).isdigit():
+#             resource.resource_type_id=int(new_resource_type_id) or resource.new_resource_type_id
+#         new_level_id=data.get("level_id")
+#         if new_level_id is not None and str(new_level_id).isdigit():
+#             resource.level_id=int(new_level_id) or resource.level_id
+#         new_years=data.get("years")
+#         if new_years is not None and str(new_years).isdigit():
+#             resource.years=int(new_years) or resource.years
+#         db.session.commit()
+#         print("Resource has been Updated ")
+#         return jsonify({"message":"Resource has been updated successfully"}),200
+#     except Exception as err:
+#         db.session.rollback()
+#         print("Error occurred: ",err)
+#         return jsonify ({"message":f"Server error occurred: {err}"}),500
 
 # ----------Route that load the table for resource -------
 @library_bp.route("/api/resources",methods=["GET"])
