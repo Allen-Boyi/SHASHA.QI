@@ -3,7 +3,7 @@ import {
   X, User, Mail, Phone, Lock, ShieldCheck,
   Eye, EyeOff, UserPlus, ChevronDown, CheckCircle2, AlertCircle
 } from "lucide-react";
-const baseurl="http://192.168.100.100:5000";
+const baseurl=import.meta.env.VITE_BASEURL;
 
 
 const BLUE       = "#1a2e5a";
