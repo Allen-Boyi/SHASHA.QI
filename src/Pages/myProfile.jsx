@@ -318,7 +318,7 @@ export default function MyProfile({ user, isMobile }) {
   const role = user?.role_name || "Admin";
   const user_id = user?.user_id;
   const initials = username.slice(0, 2).toUpperCase();
-  const baseURL="http://192.168.100.100:5000";
+  const baseURL=import.meta.env.VITE_BASEURL;
 
 
   const [uname, setUname] = useState(username);
