@@ -186,7 +186,7 @@ def sending_reset_email(email, username, reset_token):
     print("Reset link: ", reset_link)
     
     # Grab the API key from environment variables
-    api_key = os.environ.get("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")
+    api_key =Config.BREVO_API_KEY
     if not api_key:
         print("Error: BREVO_API_KEY environment variable is missing!")
         return False
