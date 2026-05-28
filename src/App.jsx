@@ -6,21 +6,30 @@ import AdminLayout from './adminLayout'
 import ResetPasswordModal from './resetpassword'
 
 function App() {
-  // Store both user and step together in one state object so they
-  // update atomically in a single render — eliminates the React 17
-  // double-render window where currentstep === 'admin' but user is
-  // still null (or vice-versa), which caused AuthForm to stay visible.
+  // Determine initial screen step directly during state initialization
+  // This guarantees the app NEVER renders the splash/login step first if a hash is present
+  const getInitialStep = () => {
+    if (window.location.hash.includes('reset-password')) {
+      return 'resetpassword';
+    }
+    return 'splash'; // Standard loading process path
+  };
+
   const [appState, setAppState] = useState({
-    step: 'loading',
+    step: getInitialStep(),
     user: null,
   });
 
+  // Keep a clean hash listener just in case a user navigates around dynamically
   useEffect(() => {
-    if (window.location.pathname.includes('reset-password')) {
-      setAppState({ step: 'resetpassword', user: null });
-    } else {
-      setAppState({ step: 'splash', user: null });
-    }
+    const handleHashChange = () => {
+      if (window.location.hash.includes('reset-password')) {
+        setAppState({ step: 'resetpassword', user: null });
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   const handleSplashComplete = () =>
@@ -28,7 +37,6 @@ function App() {
 
   const handleLoginSuccess = (userData) => {
     console.log('[App] handleLoginSuccess fired, userData:', userData);
-    // Single setState → single render → step and user change together
     setAppState({ step: 'admin', user: userData });
   };
 
