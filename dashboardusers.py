@@ -221,18 +221,15 @@ def sending_reset_email(email, username, reset_token):
         message.attach(MIMEText(text_body, "plain"))
         message.attach(MIMEText(html_body, "html"))
         
-        print("Connecting to Brevo SMTP server via Port 587...")
-    # Ensure EMAIL_PORT is explicitly cast to an int
-        with smtplib.SMTP(Config.EMAIL_HOST, int(Config.EMAIL_PORT), timeout=15) as server:
-            server.ehlo()        # Identify your application to Brevo
-            server.starttls()    # Secure the connection stream using TLS
-            server.ehlo()        # Re-identify over the newly secured layer
+        print("Connecting to Brevo secure SMTP server via Port 465...")
+    # Use SMTP_SSL instead of SMTP (remove server.starttls() since it's encrypted instantly)
+        with SMTP_SSL(Config.EMAIL_HOST, int(Config.EMAIL_PORT), timeout=15) as server:
+                server.login(Config.EMAIL_USER, Config.EMAIL_PASSWORD)
+                server.send_message(message)
+                
+                print("Email sent successfully via Brevo Port 465!")
+                return True
             
-            server.login(Config.EMAIL_USER, Config.EMAIL_PASSWORD)
-            server.send_message(message)
-            
-            print("Email sent successfully via Brevo!")
-            return True
             
     except Exception as e:
         print("Error occurred while trying to send email:", e)
