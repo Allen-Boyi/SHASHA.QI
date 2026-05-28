@@ -7,9 +7,9 @@ from dashboardusers import dashboardusers_bp
 app=Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
-CORS(app, resources={r"/*": {"origins": "*"}})
 app.register_blueprint(library_bp)
 app.register_blueprint(dashboardusers_bp)
+CORS(app, resources={r"/*": {"origins": "*"}})
 print(Config.SQLALCHEMY_DATABASE_URI)
 if __name__=="__main__":
     app.run(host="0.0.0.0",port=5000,debug=True)
