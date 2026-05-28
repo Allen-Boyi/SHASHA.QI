@@ -6,9 +6,9 @@ from config import Config
 import string
 import secrets
 from datetime import datetime,timedelta
+import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from smtplib import SMTP
 from sqlalchemy import func
 
 
