@@ -26,7 +26,7 @@ const ResetPasswordModal = ({ onSuccess, onClose }) => {
   const [tokenValid,      setTokenValid]      = useState(false);
   const [checkingToken,   setCheckingToken]   = useState(true);
 
-  const WEBSITE_URL =import.meta.env.VITE_BASEURL;
+  const baseURL =import.meta.env.VITE_BASEURL;
   const strength    = getStrength(password);
 
   // ── 1. Validate token on mount ──────────────────────────────────
@@ -40,7 +40,7 @@ const ResetPasswordModal = ({ onSuccess, onClose }) => {
         return;
       }
       try {
-        const res  = await fetch(`${WEBSITE_URL}/reset-password/${token}`, {
+        const res  = await fetch(`${baseURL}/reset-password/${token}`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
@@ -78,7 +78,7 @@ const ResetPasswordModal = ({ onSuccess, onClose }) => {
     setMessage('');
 
     try {
-      const res  = await fetch(`${WEBSITE_URL}/reset-password/${token}`, {
+      const res  = await fetch(`${baseURL}/reset-password/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ new_password: password, confirm_password: confirmPassword }),
