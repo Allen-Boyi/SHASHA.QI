@@ -7,11 +7,12 @@ import string
 import secrets
 from datetime import datetime,timedelta
 import smtplib
-from smtplib import SMTP_SSL  # Add this import at the top
+from smtplib import SMTP  # Add this import at the top
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from sqlalchemy import func
-
+import os
+import requests
 
 dashboardusers_bp=Blueprint("dashboardusers_bp",__name__)
 print("Website URL from config: ",Config.WEBSITE_URL)
@@ -184,55 +185,78 @@ def sending_reset_email(email, username, reset_token):
     reset_link = f'{Config.WEBSITE_URL}/reset-password/{reset_token}'
     print("Reset link: ", reset_link)
     
-    try:
-        message = MIMEMultipart("alternative")
-        message["subject"] = "Password reset request - shasha.ai"
-        message["From"] = Config.EMAIL_USER
-        message["To"] = email
-        
-        # HTML body template
-        html_body = f"""
-        <html>
-            <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;">
-                <div style="max-width:600px;margin:0 auto;padding:20px;background:#f8f9fa;border-radius:8px;">
-                    <h2 style="color:#6366f1;">Password Reset Request</h2>
-                    <p>Hi <strong>{username}</strong>,</p>
-                    <p>We have received a request to reset your password. Click the button below to proceed:</p>
-                    <div style="text-align:center;margin:30px 0;">
-                        <a href="{reset_link}" style="background:linear-gradient(135deg,#6366f1,#818cf8);color:white; padding: 12px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
-                            Reset Password
-                        </a>
-                    </div>
-                    <p>Or copy and paste this link in your browser:</p>
-                    <p style="word-break:break-all;background:#fff;padding:10px;border-radius:4px;">
-                        <a href="{reset_link}" style="color:#6366f1;text-decoration:none;">{reset_link}</a>
-                    </p>
-                    <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-                    <p style="color: #999; font-size: 12px; text-align: center;">
-                        © 2026 shasha.ai - All rights reserved
-                    </p>
+    # Grab the API key from environment variables
+    api_key = os.environ.get("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")
+    if not api_key:
+        print("Error: BREVO_API_KEY environment variable is missing!")
+        return False
+
+    # Define Brevo's Transactional HTTP API target endpoint
+    url = "https://api.brevo.com/v3/smtp/email"
+    
+    # Define required request headers
+    headers = {
+        "accept": "application/json",
+        "api-key": api_key,
+        "content-type": "application/json"
+    }
+    
+    # Setup the HTML template string
+    html_body = f"""
+    <html>
+        <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;">
+            <div style="max-width:600px;margin:0 auto;padding:20px;background:#f8f9fa;border-radius:8px;">
+                <h2 style="color:#6366f1;">Password Reset Request</h2>
+                <p>Hi <strong>{username}</strong>,</p>
+                <p>We have received a request to reset your password. Click the button below to proceed:</p>
+                <div style="text-align:center;margin:30px 0;">
+                    <a href="{reset_link}" style="background:linear-gradient(135deg,#6366f1,#818cf8);color:white; padding: 12px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
+                        Reset Password
+                    </a>
                 </div>
-            </body>
-        </html>
-        """
+                <p>Or copy and paste this link in your browser:</p>
+                <p style="word-break:break-all;background:#fff;padding:10px;border-radius:4px;">
+                    <a href="{reset_link}" style="color:#6366f1;text-decoration:none;">{reset_link}</a>
+                </p>
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+                <p style="color: #999; font-size: 12px; text-align: center;">
+                    © 2026 shasha.ai - All rights reserved
+                </p>
+            </div>
+        </body>
+    </html>
+    """
+
+    # Build the JSON payload data structure matching Brevo V3 API
+    payload = {
+        "sender": {
+            "name": "shasha.ai",
+            "email": Config.EMAIL_USER  # Must be your verified Brevo sender email
+        },
+        "to": [
+            {
+                "email": email,
+                "name": username
+            }
+        ],
+        "subject": "Password reset request - shasha.ai",
+        "htmlContent": html_body
+    }
+
+    try:
+        print("Sending email payload securely via Brevo HTTP API...")
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
         
-        text_body = f"\nHi {username},\n\nClick the link below to reset your password:\n\n{reset_link}\n"
-        
-        message.attach(MIMEText(text_body, "plain"))
-        message.attach(MIMEText(html_body, "html"))
-        
-        print("Connecting to Brevo secure SMTP server via Port 465...")
-    # Use SMTP_SSL instead of SMTP (remove server.starttls() since it's encrypted instantly)
-        with SMTP_SSL(Config.EMAIL_HOST, int(Config.EMAIL_PORT), timeout=15) as server:
-                server.login(Config.EMAIL_USER, Config.EMAIL_PASSWORD)
-                server.send_message(message)
-                
-                print("Email sent successfully via Brevo Port 465!")
-                return True
-            
+        # Check if HTTP Status Code is 201 (Created/Sent Successfully)
+        if response.status_code == 201:
+            print("Email has been sent successfully via HTTP API!")
+            return True
+        else:
+            print(f"Brevo API rejected request with status {response.status_code}: {response.text}")
+            return False
             
     except Exception as e:
-        print("Error occurred while trying to send email:", e)
+        print("Error occurred while executing Brevo API request:", e)
         return False
 
 #--------forgot password function-----------------
