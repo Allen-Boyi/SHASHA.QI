@@ -27,5 +27,5 @@ class Config:
     SESSION_COOKIE_SECURE   = False
     PERMANENT_SESSION_LIFETIME = 24 * 60 * 60  # 24 hours in seconds
     HASHIDS_SALT = os.getenv("HASHIDS_SALT", "default-fallback-salt-change-me")
-   
+    GOOGLE_TOKEN_JSON = os.getenv("GOOGLE_TOKEN_JSON")
     
