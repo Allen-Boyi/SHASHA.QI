@@ -1,0 +1,30 @@
+
+**Role:** Senior Frontend Developer.
+**Task:** Create a single-file React component (`AdminDashboard.jsx`) for an AI Learning Hub called "IQhub.AI".
+
+**Core Objective:** Build a responsive dashboard that works perfectly on mobile (iPhone/Android) and Desktop. **The most important requirement is that NO components (especially the statistics cards) should be hidden or cut off on mobile devices.**
+
+**1. Technical Foundation (Vite-Compatible):**
+* **Zero Dependencies:** Use only standard React hooks (`useState`, `useEffect`).
+* **Styling:** Use **Inline Styles** only.
+* **Box Model:** Every element must have `boxSizing: "border-box"`.
+* **Viewport:** The main container must have `maxWidth: "100vw"` and `overflowX: "hidden"` to prevent horizontal scrolling.
+
+**2. Layout Strategy (The Mobile Fix):**
+* **Header:** Create a `Sticky` or `Fixed` header with a height of `70px`. 
+* **The Spacer:** Immediately after the header, place a `div` with `height: "70px"`. This is mandatory to ensure the dashboard content starts *below* the header and is not hidden behind it.
+* **Fluid Grid:** For the Statistics Cards, use: `display: "grid"`, `gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))"`, and `gap: "16px"`. This automatically stacks cards on mobile and spreads them on desktop.
+
+**3. Dashboard Components to Include:**
+* **Stats Row:** 4 Cards (Active Users, Downloads, AI Queries, Credits Remaining). "Credits Remaining" must include a small progress bar.
+* **User Overview:** A card showing "Total Users" and "New Signups," followed by a "Recent Activity" list with status dots.
+* **Resource Management:** A list of resources with "Edit" and "Delete" icon buttons.
+* **Simple Visuals:** Use basic SVG shapes for a "Daily Queries" line chart (Sparkline) and a "Top Subjects" bar chart.
+* **System Alerts:** A section for alerts with conditional colors (Red for "API Limit," Orange for "File Error").
+
+**4. Visual Style:**
+* **Fonts:** Use `'Inter', sans-serif` or `'system-ui'`. 
+* **Colors:** Clean white cards (`#FFFFFF`) on a light grey background (`#F4F7FE`). Use `#4F8EF7` (Blue) as the primary action color.
+* **Mobile-Friendly:** Ensure all buttons are at least `44px` tall for easy tapping on touchscreens.
+
+**Deliverable:** Provide the complete code in one block so I can paste it directly into my Vite project.
