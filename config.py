@@ -12,7 +12,7 @@ class Config:
     EMAIL_USER                 = os.getenv("EMAIL_USER")
     EMAIL_PASSWORD             = os.getenv("EMAIL_PASSWORD")
     APP_NAME                   = os.getenv("APP_NAME")
-    WEBSITE_URL                = os.getenv("WEBSITE_URL")
+    WEBSITE_URL                = os.getenv("WEBSITE_URL","https://shasha-qi-1.onrender.com")
     ORG_PHONE_NUMBER           = os.getenv("ORG_PHONE_NUMBER")
     CLOUDINARY_CLOUD_NAME      = os.getenv('CLOUDINARY_CLOUD_NAME')
     CLOUDINARY_API_KEY         = os.getenv('CLOUDINARY_API_KEY')
