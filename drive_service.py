@@ -1,3 +1,5 @@
+import os
+import json
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request 
 from googleapiclient.discovery import build
@@ -12,13 +14,33 @@ def normalize(name: str) -> str:
 
 def get_drive_service():
     SCOPES = ["https://www.googleapis.com/auth/drive"]
-    creds = Credentials.from_authorized_user_file("token.json", SCOPES)
-    if creds.expired and creds.refresh_token:
-        creds.refresh(Request())
-        with open("token.json", "w") as f:
-            f.write(creds.to_json())
-    return build("drive", "v3", credentials=creds)
+    creds = None
+    
+    # 1. Grab token string from Config
+    token_json_str = getattr(Config, "GOOGLE_TOKEN_JSON", None)
+    
+    if token_json_str:
+        # If it's loaded as a JSON string, parse it; if already a dict, use directly
+        token_data = json.loads(token_json_str) if isinstance(token_json_str, str) else token_json_str
+        creds = Credentials.from_authorized_user_info(token_data, SCOPES)
+        
+    # 2. Local file fallback for development
+    elif os.path.exists("token.json"):
+        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+    else:
+        raise FileNotFoundError("Google token not found in Config.GOOGLE_TOKEN_JSON or token.json file.")
 
+    # 3. Refresh expired tokens in memory
+    if creds and creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+        
+        # Only write to disk if running locally with a physical token.json file
+        if not token_json_str and os.path.exists("token.json"):
+            with open("token.json", "w") as f:
+                f.write(creds.to_json())
+
+    return build("drive", "v3", credentials=creds)
+    
 def delete_file_from_drive(service, file_id):
     try:
         service.files().delete(fileId=file_id, supportsAllDrives=True).execute()
