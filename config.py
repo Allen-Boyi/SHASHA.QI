@@ -27,9 +27,5 @@ class Config:
     SESSION_COOKIE_SECURE   = False
     PERMANENT_SESSION_LIFETIME = 24 * 60 * 60  # 24 hours in seconds
     HASHIDS_SALT = os.getenv("HASHIDS_SALT", "default-fallback-salt-change-me")
-    # ← move these two to Config class as plain values
-    SESSION_COOKIE_SAMESITE = "Lax"    # ← works on HTTP, no Secure needed
-    SESSION_COOKIE_SECURE   = False
-    PERMANENT_SESSION_LIFETIME = 24 * 60 * 60  # 24 hours in seconds
-    HASHIDS_SALT = os.getenv("HASHIDS_SALT")  # ← add this line to Config class
+   
     
