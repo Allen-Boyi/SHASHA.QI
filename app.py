@@ -12,11 +12,14 @@ from sync_drive_resources import register_sync_route
 
 app = Flask(__name__)
 app.config.from_object(Config)
+# 🚨 OVERRIDE SESSION COOKIE SETTINGS DIRECTLY HERE:
+app.config["SESSION_COOKIE_SAMESITE"] = "None"
+app.config["SESSION_COOKIE_SECURE"] = True
+app.config["SESSION_COOKIE_HTTPONLY"] = True
 
-print("SAMESITE type:", type(app.config.get("SESSION_COOKIE_SAMESITE")))
+# Verification logs to double check during startup
 print("SAMESITE value:", repr(app.config.get("SESSION_COOKIE_SAMESITE")))
-print("SECURE:", repr(app.config.get("SESSION_COOKIE_SECURE")))
-
+print("SECURE value:", repr(app.config.get("SESSION_COOKIE_SECURE")))
 db.init_app(app)
 
 register_sync_route(library_bp) 
