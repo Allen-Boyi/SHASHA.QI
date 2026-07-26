@@ -22,7 +22,11 @@ class Config:
     GOOGLE_INFO                = json.loads(os.getenv("GOOGLE_CREDINTIALS"))
     JWT_SECRET_KEY             = os.getenv("JWT_SECRET_KEY")
     GDRIVE_ROOT_FOLDER_ID=os.getenv("GDRIVE_ROOT_FOLDER_ID")
-
+     # ← move these two to Config class as plain values
+    SESSION_COOKIE_SAMESITE = "Lax"    # ← works on HTTP, no Secure needed
+    SESSION_COOKIE_SECURE   = False
+    PERMANENT_SESSION_LIFETIME = 24 * 60 * 60  # 24 hours in seconds
+    HASHIDS_SALT = os.getenv("HASHIDS_SALT", "default-fallback-salt-change-me")
     # ← move these two to Config class as plain values
     SESSION_COOKIE_SAMESITE = "Lax"    # ← works on HTTP, no Secure needed
     SESSION_COOKIE_SECURE   = False
