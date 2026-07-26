@@ -8,7 +8,7 @@ import Settings from './Pages/settings.jsx';
 import CurriculumContentManager from './Pages/curriculumContentManager.jsx';
 import Analytics from './Pages/analytics.jsx';
 import DashboardContent from './Pages/dashboardContent.jsx';
-import WhatsappCommunityManager from './Pages/whatsappCommunityManager.jsx';
+import WhatsappCommunityManager from './Pages/WhatsappCommunityManager.jsx';
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const DashboardIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
