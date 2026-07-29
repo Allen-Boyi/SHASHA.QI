@@ -654,8 +654,10 @@ export default function ResourceManagement({ isMobile = false }) {
       throw new Error(data.message || 'Failed to sync structural folders.');
     }
 
-    alert(`Success! Built ${data.new_folders_created} new directories, verified ${data.existing_folders_verified} variants.`);
-
+    alert(
+    `Success! Built ${data?.new_folders_created || 0} new directories, verified ${data?.existing_folders_verified || 0} variants.`
+    );
+    console.log("Full Sync Response:", data);
   } catch (error) {
     console.error('Folder sync error:', error);
     alert(error.message || 'A network error occurred while compiling directories.');
