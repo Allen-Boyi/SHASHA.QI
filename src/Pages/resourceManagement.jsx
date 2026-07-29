@@ -630,35 +630,39 @@ export default function ResourceManagement({ isMobile = false }) {
     .reduce((acc, p, i, arr) => { if (i > 0 && p - arr[i - 1] > 1) acc.push("…"); acc.push(p); return acc; }, []);
 
     const handleSyncFolders = async () => {
-      // Prevent double submissions while processing the matrix
-      if (isSyncing) return;
-      
-      setIsSyncing(true);
-      try {
-        const response = await fetch('/api/resources/sync_drive_folders', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            // If your app handles cross-site auth tokens, include them here
-          }
-        });
-    
-        const data = await response.json();
-    
-        if (!response.ok) {
-          throw new Error(data.message || 'Failed to sync structural folders.');
-        }
-    
-        // Success Notification / Toast Alert goes here
-        alert(`Success! Built ${data.new_folders_created} new directories, verified ${data.existing_folders_verified} variants.`);
-        
-      } catch (error) {
-        console.error('Folder sync error:', error);
-        alert(error.message || 'A network error occurred while compiling directories.');
-      } finally {
-        setIsSyncing(false);
-      }
-    };
+  if (isSyncing) return;
+  setIsSyncing(true);
+
+  try {
+    const response = await fetch('/api/resources/sync_drive_folders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    // 1. Get raw text response first
+    const text = await response.text();
+    let data;
+
+    // 2. Safely attempt to parse JSON
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (e) {
+      throw new Error(`Server returned non-JSON response (Status ${response.status}). Request likely timed out.`);
+    }
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to sync structural folders.');
+    }
+
+    alert(`Success! Built ${data.new_folders_created} new directories, verified ${data.existing_folders_verified} variants.`);
+
+  } catch (error) {
+    console.error('Folder sync error:', error);
+    alert(error.message || 'A network error occurred while compiling directories.');
+  } finally {
+    setIsSyncing(false);
+  }
+};
   
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
