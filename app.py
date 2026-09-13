@@ -36,7 +36,9 @@ allowed_origins = [
     Config.WEBSITE_URL,
     f"{Config.WEBSITE_URL}/",
     "http://127.0.0.1:5173",
-    "http://localhost:5173"
+    "http://localhost:5173",
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
 ]
 
 CORS(app, supports_credentials=True, origins=allowed_origins)
